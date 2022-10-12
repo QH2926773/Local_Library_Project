@@ -7,44 +7,53 @@ function sortAccountsByLastName(accounts) {
 }
 
 function getTotalNumberOfBorrows(account, books) {
-  let total=0
-  const totalBorrowsByAccount=books.forEach((book)=>{
-    if(book.borrows){
-      book.borrows.forEach((accounts)=>{
-      if(accounts.id===account.id){
-      total++
+//   let total=0
+//   const totalBorrowsByAccount=books.forEach((book)=>{
+//     if(book.borrows){
+//       book.borrows.forEach((accounts)=>{
+//       if(accounts.id===account.id){
+//       total++
+//     }
+//   })
+//     }}) 
+//   return total
+//                                            }
+    const total = books.reduce((total, book) => {
+    if (book.borrows) {
+      book.borrows.forEach((accounts) => {
+        if (accounts.id === account.id) total += 1;
+      });
     }
-  })
-    }}) 
-  return total
-                                           }
-function getBooksPossessedByAccount(account, books, authors) {
- let result = [];
- let borrowMatch = [];
- books.forEach((item) => {
-  const borrowed = item.borrows;
-  const book = {
-   id: item.id,
-   title: item.title,
-   genre: item.genre,
-   authorId: item.authorId,
-   author: {},
-   borrows: {}
-  };
-  const { id, title, genre, authorId, author, borrows } = book;
-
-  borrowed.forEach((borrow) => {
-   if (borrow.id === account.id && borrow.returned === false) {
-    result.push(book);
-    borrowMatch.push(borrow);
-    book.borrows = borrowMatch;
-    book.author = authors.filter((auth) => auth.id === book.authorId)[0];
-   }
-  });
- });
- return result;
-
+    return total;
+  }, 0);
+  return total;
 }
+  
+function getBooksPossessedByAccount(account, books, authors) {
+
+  const borrowedBooks=[]
+  books.forEach((book)=>{
+    let bookBorrows=book.borrows
+    bookBorrows.forEach((borrow)=>{
+      if(borrow.id===account.id&&(!borrow.returned)){
+         borrowedBooks.push(book)
+         }})
+    
+  })
+  let result=borrowedBooks.map((book)=>{
+    return {...book,author:getAuthors(book,authors)}
+  }
+                              )
+  return result
+}
+
+//helper function:
+function getAuthors(book, authors){
+  const author=authors.find((author)=>author.id===book.authorId)
+  return author
+}
+
+
 
 module.exports = {
   findAccountById,
